@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">Light Control</string>
+    <string name="view_buildings_btn">List Buildings</string>
+    <string name="view_rooms_btn">List Rooms</string>
+    <string name="view_lights_btn">List Lights</string>
+    <string name="view_temp_sensors_btn">List Temperature Sensors</string>
+    <string name="view_hmdt_sensors_btn">List Humidity Sensors</string>
+    <string name="title_activity_building_list">BuildingListActivity</string>
+    <string name="light_level">Light Level:</string>
+    <string name="temperature">Temperature:</string>
+    <string name="humidity">Humidity:</string>
+    <string name="light_id">Light ID:</string>
+    <string name="room_id">Room ID:</string>
+    <string name="image_content_description">Light</string>
+    <string name="lightonoff">Light On/Off</string>
+    <string name="ringonoff">Ring On/off</string>
+    <string name="action_settings">Settings</string>
+</resources>
