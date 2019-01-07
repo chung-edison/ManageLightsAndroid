@@ -25,6 +25,7 @@ public class LightListActivity extends AppCompatActivity implements LightActivit
     private ArrayList<String> listViewItems = new ArrayList<String>();
     private ArrayAdapter<String> adapter;
     private LightHttpController controller;
+    private LightWebsocketsController websocketsController;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,6 +48,19 @@ public class LightListActivity extends AppCompatActivity implements LightActivit
                 showLight(id);
             }
         });
+        this.websocketsController = new LightWebsocketsController(LightListActivity.this);
+    }
+
+    @Override
+    protected void onResume() {
+        this.websocketsController.connect();
+        super.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        this.websocketsController.disconnect();
+        super.onPause();
     }
 
     public void showLight(String id) {
@@ -56,17 +70,22 @@ public class LightListActivity extends AppCompatActivity implements LightActivit
     }
 
     public void onUpdate(String response) {
-        try {
-            JSONArray lights = new JSONArray(response);
-            this.adapter.clear();
-            for (int i = 0; i < lights.length(); i++) {
-                JSONObject light = lights.getJSONObject(i);
-                this.adapter.add(light.getString("id") + " | Level: " + light.getString("level") + " | Status: " + light.getString("status") + " | Room: " + light.getString("roomId"));
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    JSONArray lights = new JSONArray(response);
+                    adapter.clear();
+                    for (int i = 0; i < lights.length(); i++) {
+                        JSONObject light = lights.getJSONObject(i);
+                        adapter.add(light.getString("id") + " | Level: " + light.getString("level") + " | Status: " + light.getString("status") + " | Room: " + light.getString("roomId"));
+                    }
+                    adapter.notifyDataSetChanged();
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    Toast.makeText(LightListActivity.this, "Error loading light list", Toast.LENGTH_SHORT).show();
+                }
             }
-            this.adapter.notifyDataSetChanged();
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            Toast.makeText(this, "Error loading light list", Toast.LENGTH_SHORT).show();
-        }
+        });
     }
 }

@@ -20,6 +20,7 @@ public class TempSensorListActivity extends AppCompatActivity {
     private ArrayList<String> listViewItems = new ArrayList<String>();
     private ArrayAdapter<String> adapter;
     private TempSensorHttpController controller;
+    private TempSensorWebsocketsController websocketsController;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,20 +34,39 @@ public class TempSensorListActivity extends AppCompatActivity {
         adapter.notifyDataSetChanged();
         this.controller = new TempSensorHttpController(Volley.newRequestQueue(this), TempSensorListActivity.this);
         this.controller.retrieveTempSensorList();
+        this.websocketsController = new TempSensorWebsocketsController(TempSensorListActivity.this);
     }
 
-    public void onUpdate(String response){
-        try {
-            JSONArray tempSensors = new JSONArray(response);
-            this.adapter.clear();
-            for(int i = 0; i < tempSensors.length(); i++){
-                JSONObject sensor = tempSensors.getJSONObject(i);
-                this.adapter.add(sensor.getString("id") + " | Temperature: " + sensor.getString("temperature"));
+    @Override
+    protected void onResume() {
+        this.websocketsController.connect();
+        super.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        this.websocketsController.disconnect();
+        super.onPause();
+    }
+
+    public void onUpdate(String response) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    JSONArray tempSensors = new JSONArray(response);
+                    adapter.clear();
+                    for (int i = 0; i < tempSensors.length(); i++) {
+                        JSONObject sensor = tempSensors.getJSONObject(i);
+                        adapter.add(sensor.getString("id") + " | Temperature: " + sensor.getString("temperature"));
+                    }
+                    adapter.notifyDataSetChanged();
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    Toast.makeText(TempSensorListActivity.this, "Error loading temperature sensor list", Toast.LENGTH_SHORT).show();
+                }
             }
-            this.adapter.notifyDataSetChanged();
-        } catch (Exception ex){
-            ex.printStackTrace();
-            Toast.makeText(this, "Error loading temperature sensor list", Toast.LENGTH_SHORT).show();
-        }
+        });
+
     }
 }

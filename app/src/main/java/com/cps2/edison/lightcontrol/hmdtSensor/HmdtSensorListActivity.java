@@ -20,6 +20,7 @@ public class HmdtSensorListActivity extends AppCompatActivity {
     private ArrayList<String> listViewItems = new ArrayList<String>();
     private ArrayAdapter<String> adapter;
     private HmdtSensorHttpController controller;
+    private HmdtSensorWebsocketsController websocketsController;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,20 +34,39 @@ public class HmdtSensorListActivity extends AppCompatActivity {
         adapter.notifyDataSetChanged();
         this.controller = new HmdtSensorHttpController(Volley.newRequestQueue(this), HmdtSensorListActivity.this);
         this.controller.retrieveHmdtSensorList();
+        this.websocketsController = new HmdtSensorWebsocketsController(HmdtSensorListActivity.this);
     }
 
-    public void onUpdate(String response){
-        try {
-            JSONArray hmdtSensors = new JSONArray(response);
-            this.adapter.clear();
-            for(int i = 0; i < hmdtSensors.length(); i++){
-                JSONObject sensor = hmdtSensors.getJSONObject(i);
-                this.adapter.add(sensor.getString("id") + " | Relative Humidity: " + sensor.getString("humidity"));
+    @Override
+    protected void onResume() {
+        this.websocketsController.connect();
+        super.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        this.websocketsController.disconnect();
+        super.onPause();
+    }
+
+    public void onUpdate(String response) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    JSONArray hmdtSensors = new JSONArray(response);
+                    adapter.clear();
+                    for (int i = 0; i < hmdtSensors.length(); i++) {
+                        JSONObject sensor = hmdtSensors.getJSONObject(i);
+                        adapter.add(sensor.getString("id") + " | Relative Humidity: " + sensor.getString("humidity"));
+                    }
+                    adapter.notifyDataSetChanged();
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    Toast.makeText(HmdtSensorListActivity.this, "Error loading humidity sensor list", Toast.LENGTH_SHORT).show();
+                }
             }
-            this.adapter.notifyDataSetChanged();
-        } catch (Exception ex){
-            ex.printStackTrace();
-            Toast.makeText(this, "Error loading humidity sensor list", Toast.LENGTH_SHORT).show();
-        }
+        });
+
     }
 }
